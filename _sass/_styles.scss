@@ -485,7 +485,7 @@ header.site-header nav {
         li {
             margin-left: $lh*2;
             padding-left: $lh/3;
-            margin-bottom: $lh/3;
+            margin-bottom: 0;
             line-height: $lh;
             font-size: $fsp;
         &:last-child {
