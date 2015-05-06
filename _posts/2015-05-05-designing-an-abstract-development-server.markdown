@@ -2,9 +2,9 @@
 layout: post-no-feature
 title:  "Designing an Abstract Development Server"
 date:   2015-05-05 19:44:36
-categories: languages development design servers
+description:  Let's design an abstract web server that runs from the command line
+categories: development software-design servers
 ---
-Let's design an abstract web server that runs from the command line.
 
 For compiled languages, web frameworks usually bake in a mechanism that
 compiles a binary and re-serves the development server when a file
