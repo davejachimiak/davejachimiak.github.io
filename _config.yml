@@ -21,10 +21,10 @@ tools:
 # Links to include in top navigation
 # For external links add external: true
 links:
-  - title: About
+  - title: Dave
     url: /about
   - title: Github
-    url: https://github.com/ColeTownsend/Balzac-for-Jekyll
+    url: https://github.com/davejachimiak
     external: true
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones

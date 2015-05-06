@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: post-no-feature
 title:  "Designing an Abstract Development Server"
 date:   2015-05-05 19:44:36
 categories: languages development design servers
