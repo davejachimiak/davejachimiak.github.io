@@ -5,7 +5,6 @@ date:   2015-05-05 19:44:36
 description:  Let's design an abstract web server that runs from the command line
 categories: development software-design servers
 ---
-
 For compiled languages, web frameworks usually bake in a mechanism that
 compiles a binary and re-serves the development server when a file
 changes. Such mechanisms are custom-built according to the philosophies
