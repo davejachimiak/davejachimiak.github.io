@@ -7,21 +7,17 @@ canonical: https://davej.io
 owner:
   name: Dave Jachimiak
   avatar: dave.jpg
-  bio: "Aesthete & Athlete"
+  bio: "guy"
   email: dave.jachimiak@gmail.com
   twitter: davejachimiak
   github: davejachimiak
   location: "Cambridge, MA"
   # Plug in your disqus shortname!
 
-tools:
-  standards: "HTML, SCSS, Jekyll"
-  software: "git"
-
 # Links to include in top navigation
 # For external links add external: true
 links:
-  - title: Dave
+  - title: About
     url: /about
   - title: Github
     url: https://github.com/davejachimiak
@@ -50,8 +46,7 @@ kramdown:
 sass:
     style: :compressed
 
-# https://github.com/mojombo/jekyll/wiki/Permalinks
-permalink:   /:categories/:title
+permalink: /:year/:month/:title.html
 
 include: [".htaccess"]
 exclude: ["lib", "config.rb", "Capfile", "config", "log", "Rakefile", "Rakefile.rb", "tmp"]
