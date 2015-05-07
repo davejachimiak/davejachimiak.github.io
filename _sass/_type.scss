@@ -18,6 +18,12 @@ p {
     line-height: 1.4em;
 }
 
+.post ol li {
+    font-size: $fsp;
+    line-height: $lh;
+    margin-bottom: 0;
+}
+
 .post ul li {
     font-size: $fsp;
     line-height: $lh;
@@ -59,6 +65,12 @@ p {
 .intro {      
     font-size: $fs4; 
     line-height: 1.4em;
+}
+
+.post ol li {
+    font-size: $fs5;
+    line-height: $lhsmall;
+    margin-bottom: 0;
 }
 
 .post ul li {
