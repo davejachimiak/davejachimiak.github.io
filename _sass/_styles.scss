@@ -814,6 +814,17 @@ small {
 
 }
 
+.greeting {
+  margin-top: 0;
+  line-height: 1em;
+}
 
+h2.greeting {
+  @extend .greeting;
+  margin-bottom: 0;
+}
 
-
+h3.greeting {
+  @extend .greeting;
+  margin-bottom: 35px;
+}
