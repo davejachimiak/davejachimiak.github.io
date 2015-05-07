@@ -18,12 +18,11 @@ The command line program should take at least:
 
 It should do the following when it's run:
 
-1. build the binary + serve the binary
+1. build the server binary and serve it
 2. initialize a file watcher
 
-The first step is straightforward. The second one less so.
-
-Two questions will guide our design of the file watcher.
+The file watcher is like a program in and of itself. Two questions will
+guide our design of the file watcher.
 
 1. What should happen when multiple files are saved at the same time?
 2. What should happen when a file is saved while a compilation is in
@@ -50,6 +49,6 @@ which sounds nice, but really isn't. By the time the second save rolls
 around, we don't care about any intermittent code. We just want to see
 the current state of our updated code.
 
-### Conclusion
+### Result
 
 Yup there it is.
