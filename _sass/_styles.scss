@@ -54,7 +54,7 @@ small {
 blockquote, blockquote p {
     font-style: italic;
     line-height: 1.3em;
-    text-align: center;
+    padding: 0 20px;
     color: lighten($black, .2);
     margin-bottom: $lh;
 }
