@@ -17,7 +17,7 @@ h1,h2,h3,h4,h5 {
 }
 
 p {
-    margin-bottom: $lh;
+    margin-bottom: $lh*.75;
 }
 
 a, a:visited, a:active {
@@ -459,7 +459,7 @@ header.site-header nav {
     
     ul {
         display: block;
-        margin-bottom: $lh;
+        margin-bottom: $lh*.75;
         list-style: disc;
         list-style-type: disc;
         lh h1, lh h2, lh h3, lh h4, lh h5 {
@@ -477,7 +477,7 @@ header.site-header nav {
 
     ol {
         display: block;
-        margin-bottom: $lh;
+        margin-bottom: $lh*.75;
         lh h1, lh h2, lh h3, lh h4, lh h5 {
             @include underline(2px, solid, $grey-light);
         }
