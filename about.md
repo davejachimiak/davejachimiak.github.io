@@ -1,6 +1,7 @@
 ---
 layout: post-no-feature
 permalink: /about/index.html
+no_share: true
 ---
 
 <h2 class="greeting">Hi, I'm Dave.</h2>
