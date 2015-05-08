@@ -439,6 +439,7 @@ header.site-header nav {
             list-style: disc;
             list-style-type: disc;
             margin-left: $lh*1.2;
+            line-height: $lh;
             &:last-child {
                 margin-bottom: 0;
             }
