@@ -800,5 +800,10 @@ h3.greeting {
 }
 
 sup {
-  font: smaller;
+  line-height: 0;
+}
+
+.postscript p {
+  font-size: 14px;
+  line-height: 1em;
 }
