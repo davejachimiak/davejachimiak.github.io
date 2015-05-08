@@ -188,3 +188,18 @@
 "/Users/davejachimiak/projects/davejachimiak.github.io/sitemap.xml":
   mtime: 2015-05-06 19:23:16.000000000 -04:00
   deps: []
+"/Users/davejachimiak/projects/davejachimiak.github.io/_includes/head-dark.html":
+  mtime: 2015-05-07 17:05:46.000000000 -04:00
+  deps: []
+"/Users/davejachimiak/projects/davejachimiak.github.io/_includes/footer.html":
+  mtime: 2015-05-07 20:22:20.000000000 -04:00
+  deps: []
+"/Users/davejachimiak/projects/davejachimiak.github.io/_layouts/post-no-feature.html":
+  mtime: 2015-05-06 21:11:37.000000000 -04:00
+  deps: []
+"/Users/davejachimiak/projects/davejachimiak.github.io/_layouts/404.html":
+  mtime: 2015-05-05 22:59:08.000000000 -04:00
+  deps: []
+"/Users/davejachimiak/projects/davejachimiak.github.io/_layouts/home.html":
+  mtime: 2015-05-06 19:38:34.000000000 -04:00
+  deps: []

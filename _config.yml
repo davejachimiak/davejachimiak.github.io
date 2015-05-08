@@ -1,6 +1,5 @@
 title: Dave Jachimiak
-tagline: A beautiful theme.
-description: Describe your website.
+description: Blog
 canonical: https://davej.io
 
 # Owner/author information
@@ -27,6 +26,7 @@ links:
 timezone: America/New_York
 future: true
 highlighter: pygments
+markdown: kramdown
 
 sass:
     style: :compressed
