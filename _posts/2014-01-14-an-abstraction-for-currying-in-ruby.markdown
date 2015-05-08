@@ -20,7 +20,7 @@ addThreeNumbers(x, y, z) = { x + y + z }
 
 Call `addThreeNumbers(1, 1, 1)` and it would return 3. But how is the function applied to those arguments? `addThreeNumbers` as a Ruby method would use the arguments at any time they were referenced within it. It would raise an error if it were called with less than 3 arguments, given no arguments were optional.
 
-```ruby
+{% highlight ruby %}
 def add_three_numbers x, y, z
   x + y + z
 end
@@ -33,7 +33,7 @@ add_three_numbers 1
 #=> ArgumentError: wrong number of arguments (1 for 3)
 add_three_numbers 1, 1
 #=> ArgumentError: wrong number of arguments (2 for 3)
-```
+{% endhighlight %}
 
 `add_three_numbers` would act a lot differently if it were a curried function.
 
