@@ -83,23 +83,6 @@ $ brew tap davejachimiak/tap
 $ brew install waiter
 {% endhighlight %}
 
-Usage:
+Usage: `waiter SERVER_COMMAND BUILD_COMMAND [-f|--file-name-regex REGEX] [-d|--dir DIR]`
 
-{% highlight sh %}
-$ waiter -h
-: 'Usage: waiter SERVER_COMMAND BUILD_COMMAND [-f|--file-name-regex REGEX]
-              [-d|--dir DIR]
-
-Available options:
-  SERVER_COMMAND           the command to run your server
-  BUILD_COMMAND            the command to build your server
-  -f,--file-name-regex REGEX
-                           A rebuild is triggered for changes in files
-whose
-                           names match this regex. Default: .*
-  -d,--dir DIR             Look for file changes in this directory.
-Default:
-                           ./src
-  -h,--help                Show this help text
-'
-{% endhighlight %}
+See the Github repo for more information.
