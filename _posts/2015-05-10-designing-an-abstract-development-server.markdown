@@ -2,7 +2,7 @@
 layout: post-no-feature
 title:  "Designing an Abstract Development Server"
 date:   2015-05-10
-description:  Let's design an abstract development server for any compiled language.
+description:  Let's design an abstract development server that works for any compiled language.
 categories: development software-design servers
 ---
 Our program will run from the command line. It should require:
