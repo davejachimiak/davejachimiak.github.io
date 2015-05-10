@@ -43,6 +43,15 @@
 <!-- Load Modernizr -->
 <script src="{{ site.url }}/assets/js/vendor/modernizr-2.6.2.custom.min.js"></script>
 
+<!-- ugh -->
+<script src="/assets/js/fastclick.js"></script>
+
+<script>
+  $(function() {
+    FastClick.attach(document.body);
+  });
+</script>
+
 
 <!-- Icons -->
 <!-- 16x16 -->
@@ -53,13 +62,13 @@
     <header class="site-header">
       <div class="wrap">
         <hgroup>
-          <h1><a href="/">{{ site.title }}</a></h1>
+          <h1>{{ site.title }}</h1>
         </hgroup>
         <a href="#nav" class="menu"><span class='icons'>☰</span></a>
         <nav role="navigation">
           <ul>
             <li>
-              <a href="/" title="{{ site.title }}">Home</a>
+              <a href="/" title="{{ site.title }}">posts</a>
             </li>
             
             {% for link in site.links %}

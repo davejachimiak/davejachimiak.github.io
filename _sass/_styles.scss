@@ -17,7 +17,7 @@ h1,h2,h3,h4,h5 {
 }
 
 p {
-    margin-bottom: $lh;
+    margin-bottom: $lh*.75;
 }
 
 a, a:visited, a:active {
@@ -54,7 +54,7 @@ small {
 blockquote, blockquote p {
     font-style: italic;
     line-height: 1.3em;
-    text-align: center;
+    padding: 0 20px;
     color: lighten($black, .2);
     margin-bottom: $lh;
 }
@@ -68,36 +68,6 @@ code {
     font-size: .75em;
     font-weight: bold;
 }
-
-.highlight {
-    background: $black;
-    padding: 12px;
-    border-radius: 4px;
-    margin-bottom: $lh;
-    overflow-x: scroll;
-
-    code {
-        color: $white;
-        font-family: "Monaco", "Courier New", "Courier";
-        font-size: .9em;
-        .lineno {
-            margin-right: $lh/2;
-            color: $grey-light;
-            line-height: 2em;
-        }
-        .nt {
-            color: #c85b5c;
-        }
-        .na {
-            color: #f0e687;
-        }
-        .s {
-            color: #87ceeb;
-        }
-    }
-}
-
-
 
 hr {
     display: block;
@@ -372,40 +342,6 @@ header.site-header nav {
             margin-bottom: $lh*2;
             position: relative;
             
-            a {
-                position: relative;
-                &:hover {
-                    @include transit;
-                }
-            }
-            
-            a:hover:before {
-                content:'...';
-                color: $grey-light;
-                font-family: $sans;
-                position: absolute;
-                margin-left: -70px;
-                font-size: 40px;
-                left: 0;
-                top: -20px;
-                text-align: center;
-                @include transit;
-            }
-            
-            a:before {
-                content:'\201c';
-                color: $grey-light;
-                position: absolute;
-                margin-left: -70px;
-                font-size: 60px;
-                z-index: 10;
-                top: -6px;
-                left: 0;
-                text-align: center;
-                @include transit;
-
-            }
-            
             h1 {
                 font-size: $fs3;
                 font-style: italic;
@@ -493,7 +429,7 @@ header.site-header nav {
     
     ul {
         display: block;
-        margin-bottom: $lh;
+        margin-bottom: $lh*.75;
         list-style: disc;
         list-style-type: disc;
         lh h1, lh h2, lh h3, lh h4, lh h5 {
@@ -502,52 +438,29 @@ header.site-header nav {
         li {
             list-style: disc;
             list-style-type: disc;
-            margin-left: $lh*2;
-            padding-left: $lh/3;
-        &:last-child {
-            margin-bottom: 0;
+            margin-left: $lh*1.2;
+            line-height: $lh;
+            &:last-child {
+                margin-bottom: 0;
             }
         }
     }
 
     ol {
         display: block;
-        margin-bottom: $lh;
+        margin-bottom: $lh*.75;
         lh h1, lh h2, lh h3, lh h4, lh h5 {
             @include underline(2px, solid, $grey-light);
         }
         li {
-            margin-left: $lh*2;
-            padding-left: $lh/3;
-            margin-bottom: $lh/3;
-            line-height: $lh;
-            font-size: $fsp;
-        &:last-child {
+            margin-left: $lh*1.2;
             margin-bottom: 0;
+            line-height: $lh;
+            &:last-child {
+                margin-bottom: 0;
             }
         } 
     }  
-    
-    .share {
-        text-align: center;
-        display: block;
-        margin: 0 auto;
-        width: 76px;
-        font-size: $fs5;
-        font-family: $sans;
-        text-transform: uppercase;
-        font-weight: bold;
-        letter-spacing: 1px;
-        padding: 4px 6px 4px 6px;
-        color: $grey-light;
-        border: 2px solid transparentize($grey-light,.3);
-        @include br(4px);
-        &:hover {
-            color: $link;
-            border-color: transparentize($link,.3);
-            @include transit(all,.2s,ease)
-        }
-    }
 }
 
 /* Footer Stuff */
@@ -638,7 +551,7 @@ footer {
         }
         ul {
             li {
-                margin-bottom: $lh/2;
+                margin-bottom: $lh/4;
                 &:last-child {
                     margin-bottom: 0;
                 }
@@ -851,6 +764,35 @@ small {
 
 }
 
+.greeting {
+  margin-top: 0;
+  line-height: 1em;
+}
 
+h2.greeting {
+  @extend .greeting;
+  margin-bottom: 0;
+}
 
+h3.greeting {
+  @extend .greeting;
+  margin-bottom: 35px;
+}
 
+sup {
+  line-height: 0;
+}
+
+.postscript p {
+  font-size: 14px;
+  line-height: 1em;
+}
+
+.twitter-share-button {
+  left: 50%;
+}
+
+img.dave {
+  max-height: 200px;
+  max-width: 200px;
+}
