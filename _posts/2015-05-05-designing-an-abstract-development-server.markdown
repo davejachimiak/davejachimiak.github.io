@@ -49,8 +49,8 @@ running build called build #1 and it takes 10 seconds to finish. Then a
 file event occurs 1 second after it starts. In the alternative scenario,
 that file event triggers another build called build #2, which takes only
 2 seconds to finish. This means build #2 will finish before build #1.
-When build #1 finishes, the server will be serving stale code when we
-want fresh code.
+When build #1 finishes, the server will serve stale code when we want
+fresh code.
 
 There are slight variations on this alternative that avoid that flaw.
 However, they still present no benefit over killing the current build
