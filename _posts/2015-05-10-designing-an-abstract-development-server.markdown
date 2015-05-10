@@ -28,7 +28,7 @@ When run, it should:
 2. serve that executable
 3. start a file watcher
 
-The file watcher should:
+When a file changes, the file watcher should:
 
 1. Start and maintain a build process.
 2. If another file change event occurs, kill the process started by 1.
