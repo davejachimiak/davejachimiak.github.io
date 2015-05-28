@@ -21,4 +21,15 @@ When a file changes, the file watcher should:
 3. Restart the server, the compiled executable.
 
 The above sounds simple, but an implementation is bound to contain some
-innate complexity. The
+innate complexity. There are two points of state that we must consider
+in order to cancel builds and restart servers.
+
+We must somehow keep track of those processes. There are many ways we
+can do this 
+
+## Functional programs aren't
+
+Programs need need to be able to listen and talk to the world around
+them in order to be useful. This means that they require input and
+output in order to listen and talk to the world. It's possible that the
+world wouldn't 
