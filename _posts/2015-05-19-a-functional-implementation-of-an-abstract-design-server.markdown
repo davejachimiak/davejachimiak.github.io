@@ -5,8 +5,89 @@ date:   2015-05-19
 description:  Let's implement an abstract development server using functional thinking.
 categories: development software-design servers
 ---
+### pulling out main ideas...
+* modeling the design as a functional program
+* maintaining state in a functional program
+* explicit state
+* what are the natures of the states?
+** build process - finite but unknown time
+** server process - infinite time (until the main program's process is
+                    interuppted)
+* why do we need to maintain a reference to the build process?
+* what are the levels of the program? (boot, file-watcher, sub-program)
+* how do we keep a reference to a system-level process in Haskell?
+* how to listen to processes and act differently according to their exit code?
+
+I. Levels of the program
+  A. Boot
+    1. Build the server binary
+    2. Run the server binary
+  B. File-watcher
+    1. This listens to file-change events coming from the operating
+       system. It runs the build-and-serve program on every event.
+  C. Build-And-Serve program
+    1. This cancels an old build if it exists, kicks off a new build,
+       kills the current server, and serves the newly-built server.
+II. The states of the program
+  A. Build rocess
+    1. Why keep track of this?
+      a. We want to cancel the current build if a file event triggers
+         another build.
+    2. nature of the state
+      a. It takes finite but unknown time. We know that the build
+         process should end. If we store a reference to the running process, we
+         can act differently depending on whether the reference has a build
+         process or not.
+  B. Server process
+    1. Why keep track of this?
+      a. We need to serve the latest version of our code. Presumably,
+         our server is tying up a port on localhost, and if a new server
+         comes around we want to kill the current process and start
+         another.
+    2. takes infinite time
+      a. The only reason that a reference to the server process would be
+         empty is if the server hasn't started in our program yet, or if the
+         server is in the midst of being restarted.
+III. Modeling state in a functional program
+  A. Haskell has a few ways to maintain state. One way is through
+     `MVar`s. We'll use them because Haskell's most popular file watching library,
+     `fsnotify`, already has a hard dependency on them.
+  B. `MVar` contains state. It wraps any data type and provides an
+      interface to get and change the data inside them.
+IV. Using `MVar`s to contain our state.
+  A. Boot.
+    1. Creating the containers for the states. `newEmptyMVar`.
+  B. The server process in Boot
+    1. We need to put a reference to the server process in the `MVar`
+       that will contain our server state. You put stuff into `MVar`s
+       with `putMVar`. (example).
+  C. The build progress in build-and-serve program
+    1. The first thing we do in build-and-serve is see if there's a
+       build currently running. We would do that by inspecting the state
+       of the `buildState` `MVar`. `MVar`'s interface for inspecting
+       whether something is contained within it is `tryTakeMVar`. It
+       returns a `Maybe a`, `a` being the thing you put inside of
+       the `MVar`. If it's a `Just ProcessHandle`, we'll kill the `ProcessHandle`.
+       If it's `Nothing`, we won't do anything.
+    2. The second thing we do is kick off a build in a new process.
+       Immediately after, we should put that process in our `buildState`
+       with `putMVar`. (example). `buildState` will always be empty at
+       this point, because we've already removed any possible existing
+       process with `tryTakeMVar`.
+  D. The server process in the build-and-serve program
+    1. If and only if the build process wasn't killed, we want to
+       re-serve our server. This means we'll have to take the server
+       process out of the `serverState` and kill it. We already have a
+       mechanism to take a `ProcessHandle` out of an `MVar` and maybe
+       kill it, depending on wheter it exists, from dealing with killing
+       a potential build process. We'll use the same mechanism; no need
+       to duplicate work. (example)
+    2. Once the old server is killed, we'll spawn a new server process and use
+       `putMVar` to put it into the `serverState`.
+V. Performing actions on processes contained in `MVar`s
+
 [This post](2015/05/designing-an-abstract-development-server.html)
-determined that a design for an abstract design server would do the
+determined that a design for an abstract development server would do the
 following:
 
 1. compile the server executable
@@ -41,7 +122,7 @@ In order to keep our program "pure", we must treat references to input
 and output as special cases. In other words, we must explicitly declare
 when we're dealing with input, output, and state in our program. This
 has an added benefit of making our program more usable; at a glance, we
-know the unpure parts of our program.
+know the parts of our program that make it unpure.
 
 ## The file watcher
 
