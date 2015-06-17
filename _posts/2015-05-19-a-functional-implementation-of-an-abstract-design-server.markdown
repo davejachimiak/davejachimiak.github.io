@@ -5,19 +5,6 @@ date:   2015-05-19
 description:  Let's implement an abstract development server using functional thinking.
 categories: development software-design servers
 ---
-### pulling out main ideas...
-* modeling the design as a functional program
-* maintaining state in a functional program
-* explicit state
-* what are the natures of the states?
-** build process - finite but unknown time
-** server process - infinite time (until the main program's process is
-                    interuppted)
-* why do we need to maintain a reference to the build process?
-* what are the levels of the program? (boot, file-watcher, sub-program)
-* how do we keep a reference to a system-level process in Haskell?
-* how to listen to processes and act differently according to their exit code?
-
 I. Levels of the program
   A. Boot
     1. Build the server binary
@@ -29,7 +16,7 @@ I. Levels of the program
     1. This cancels an old build if it exists, kicks off a new build,
        kills the current server, and serves the newly-built server.
 II. The states of the program
-  A. Build rocess
+  A. Build process
     1. Why keep track of this?
       a. We want to cancel the current build if a file event triggers
          another build.
@@ -85,9 +72,27 @@ IV. Using `MVar`s to contain our state.
     2. Once the old server is killed, we'll spawn a new server process and use
        `putMVar` to put it into the `serverState`.
 V. Performing actions on processes contained in `MVar`s
+  A. Spawning processes
+    1. `spawnProcess` takes a string for the command-line. It evaluates
+       that string, while returning `IO ProcessHandle`. The
+       `ProcessHandle` is an interface to perform operations on a
+       the process.
+    2. We'll use this to create builds and servers.
+  B. Terminating processes
+    1. `terminateProcess` takes a `ProcessHandle` and sends a `SIGTERM`
+       (or its Windows equivalent, TerminateProcess) signal to it.
+    2. We'll use this to terminate the server and build processes in the
+       build-and-serve program.
+  C. Waiting for processes
+    1. `waitForProcess` takes a `ProcessHandle` and returns its
+       `ExitCode` when the process finishes.
+    2. We'll use this to see whether the build process completed
+       successfully. If it does, it returns an `ExitSuccess` value. If
+       it doesn't, it returns an `ExitFailure`. We'll use those values
+       to determine whether or not to restart the server.
 
 [This post](2015/05/designing-an-abstract-development-server.html)
-determined that a design for an abstract development server would do the
+determined that a minimal abstract development server would do the
 following:
 
 1. compile the server executable
@@ -101,108 +106,41 @@ When a file changes, the file watcher should:
    start 1. over.
 3. Restart the server, the compiled executable.
 
-The above sounds simple, but an implementation is bound to contain some
-innate complexity. There are two points of state that we must consider
-in order to cancel builds and restart servers.
+This program is bound to be interesting when implemented with a purely
+functional language. On closer inspection, this program contains
+multiple states that must be accessed in at different points in the
+program. State is handled explicitly in purely functional languages,
+which is very different from imperative langagues. So let's take a
+closer look at this program and see how parts of it may be implemented
+in Haskell.
 
-We must somehow keep track of those processes. There are many ways we
-can do this 
+## Levels of the program
+Let's break the program into different parts in order to understand it
+better: Boot, the File Watcher, and the Build-And-Serve sub-program.
 
-## Purely Functional Programs
+### Boot
+The program builds the server binary and run it when the program boots.
 
-Programs need to be able to listen and talk to the world around them in
-order to be useful. This means that they require input and output in
-order to listen and talk to the world. It's possible that the world
-needn't give any information to a program, but then the program would
-necessarily return the same result every time. It's also possible that
-the program needn't talk to the world around it, but then you wouldn't
-be able to persist or output any calculations.
+### File watcher
+The file watcher listens to the operating system for file-change events.
+It runs the build-and-serve sub-program on each file-change event.
 
-In order to keep our program "pure", we must treat references to input
-and output as special cases. In other words, we must explicitly declare
-when we're dealing with input, output, and state in our program. This
-has an added benefit of making our program more usable; at a glance, we
-know the parts of our program that make it unpure.
+### Build-And-Serve sub-program
+The build-and-serve sub-program terminates a currently running build if
+it exists. It then kicks off a new build. If the build process ends
+successfully, it terminates the current server process and starts a new
+one.
 
-## The file watcher
+## The states of the program
 
-By its very nature, a file watcher is an event loop. It sits in a
-process, waiting for something to happen – a file event. When something
-happens, it runs its program, then waits until something happens again.
-And on and on.
+### Build process
+Why keep track of the current build process? We want to cancel the
+current build if a file event happens while it's occuring.
 
-## The program's states
+We'll keep track of build processes in references. The state of a
+reference will determine it's meaning. In terms of the build processes,
+an empty reference will mean that there's no build process occuring
+right now. A reference that contains a build process will mean that
+there *is* a build process occuring right now.
 
-There are two states that the larger program needs to contain; the
-server process and the build process. We need to maintain the server
-process because we need to kill it when we're ready to serve and
-maintain a new server process. We need to keep track of any build
-processes because if another build is triggered, we need to kill the old
-one and maintain the new one.
-
-The file watcher may be thought of as a stateful thing, as its a long
-running process. But since the program it triggers it is technically
-the same thing every time, it need not be managed as something that
-changes.
-
-## Storage of the references to the states
-
-Functional languages have nifty and safe ways to keep track of data that
-changes over time. Haskell in particular has a couple of ways, depending
-on the what kinds of operations you'd like to have available as you
-operate on the container of the state. We'll be using `MVar`s in the
-examples below.
-
-State in functional programming is a big deal. The whole point of a
-function is to do something to values passed into it, return some value
-and then perhaps do something with that value in another function.
-There's no obvious need to maintain state in this scenario. Unless, of
-course, you're dealing with a program that triggers a sub-program every
-time a file event happens. In this case – which is our case –, we need
-to maintain the state of two processes so that if that sub-program can
-evaluate its logic based on those states. The sub-program is thus
-dependent on a couple of pieces of data that change.
-
-## Down into the details
-
-Our program begins with two tasks before it kicks off the file watcher.
-
-1. compile the server executable
-2. serve that executable
-
-In terms of keeping track of processes, we'd need to at least keep track
-of the server process (2.) before we even start the file watcher. But
-we should initialize both before we start the file watcher; the initial
-states should be initialized before the file watcher so that the file
-watcher itself isn't initializing a new state for every file event.
-
-So, we initialize the both states before starting the file watcher so
-that we can pass the states into it.
-
-Once the server is being served, and we've stored a reference to it in
-an `MVar`, we can pass that server state and a place to hold future
-build states to the file watcher.
-
-## What happens to the states in the file watcher?
-
-The file watcher merely watches if a file changes and triggers a
-sub-program. This sub-program is the meat and potatoes of the main
-program.
-
-In this sub-program, we first see if there's any build currently
-referenced in the build state. If there is, we kill that build and
-remove it from the state. If no build is there, we move on to the next
-step.
-
-Next, we start a new build process and store it in the build state.
-
-Finally, listen for the build state to finish. If that process finishes
-with a successful area code (0), kill the current server process stored
-in the server state, start a new server process based on the newly-built 
-executable, and store that server process in the server state. If that
-process finishes with a unsuccesful area code (1-?), to nothing.
-
-The reason we listen to the build state and its exit code is that we're
-potentially killing the the build in the build state in the first step
-of this sub-program. We don't want to start a new server if the
-executable wasn't fully built.
+### Server process
