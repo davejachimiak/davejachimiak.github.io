@@ -2,5 +2,5 @@
 layout: home
 permalink: /articles/index.html
 title: "Articles"
-tags: [blog, graphic design]
+tags: [Dave Jachimiak, programming, functional, development, web]
 ---
