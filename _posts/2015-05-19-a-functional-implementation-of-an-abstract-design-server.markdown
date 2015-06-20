@@ -2,191 +2,276 @@
 layout: post-no-feature
 title:  "A Functional Implementation of an Abstract Development Server"
 date:   2015-05-19
-description:  Let's implement an abstract development server using functional thinking.
+description:  Let's implement an abstract development server in Haskell.
 categories: development software-design servers
 ---
-[This post](2015/05/designing-an-abstract-development-server.html)
-determined that a minimal abstract development server would do the
-following:
+Implementing an abstract development server in a purely functional
+language is fun and interesting. The most interesting part is answering:
+what exactly happens when a file event is fired?
+
+[A previous post](/2015/05/designing-an-abstract-development-server.html)
+determined a loose design for an abstract development server:
+
+* * *
 
 1. compile the server executable
 2. serve that executable
 3. start a file watcher
 
-When a file changes, the file watcher should:
+When a file event happens, the file watcher should run a callback that:
 
-1. Start and maintain a build process.
-2. If another file change event occurs, kill the process started by 1. and
-   start 1. over.
-3. Restart the server, the compiled executable.
+* starts and maintains a build process,
+* terminates that process if another file event occurs, and
+* restarts the server after the build process finishes, but only if it
+  we didn't terminate it.
 
-This program is bound to be interesting when implemented with a purely
-functional language. On closer inspection, this program contains two
-states that must be accessed whenever a sub-program is invoked through a
-file event. State is handled explicitly in purely functional languages,
-which is very different from imperative langagues. Also, our program
-will be manipulating processes, which means talking to the operating
-system through IO. So let's take a closer look at this program and see
-how parts of it may be implemented in Haskell.
+* * *
 
-## The Parts of the Program
-Let's break the program into different parts in order to understand it
-better: Boot, the File Watcher, and the Build-And-Serve sub-program.
+Why do we terminate the current build process if a file event happens?
 
-### Boot
-The program builds the server binary and run it when the program boots.
+Answer: concurrent callbacks are possible.
 
-### File watcher
-The file watcher listens to the operating system for file-change events.
-It runs the build-and-serve sub-program on each file-change event.
+Compiling an executable takes time.  If a compilation takes five seconds
+and a file event occurs in the third, we want to cancel that compilation
+and start a new one. We don't care about old code when developing our
+server.
 
-### Build-And-Serve sub-program
-The build-and-serve sub-program terminates a currently running build if
-it exists. It then kicks off a new build. If the build process ends
-successfully, it terminates the current server process and starts a new
-one.
+The above callback is unneccesarily complex. It listens to file events
+even though it was triggered by a file event itself. A simpler version
+doesn't need to know about file events:
 
-## The states of the program
+* * *
 
-### Build process
-Why keep track of the current build process? We want to cancel the
-current build if a file event happens while it's occuring.
+* Terminate the current build process if one exists.
+* Start and maintain a new build.
+* Restart the server after that build ends, but only if it we didn't
+  terminate it in some other thread.
 
-We'll keep track of build processes in references. The state of a
-reference will determine it's meaning. In terms of the build processes,
-an empty reference will mean that there's no build process occuring
-right now. A reference that contains a build process will mean that
-there is a build process occuring right now.
+* * *
 
-### Server process
-Why keep track of the current server process? We need to serve the
-latest version of our development server. Our server is tying up a port
-on localhost, and if a new server is built, we want to terminate the
-current server process and start and store another one.
+This callback requires maintaining the current build and server
+processes across concurrent callbacks; the file watcher will run the
+callback in a new thread for each file event.
 
-## A way to model and store state in Haskell
-Haskell has a few ways to maintain state. Using
-`Control.Concurrent.MVar` is one way.  That's what we'll use here, since
-the file watching abstraction we'll be using, `FSNotify`, already has a
-dependency on it.
+[`System.Process`](https://hackage.haskell.org/package/process-1.2.0.0/docs/System-Process.html)
+helps to manage processes in Haskell, and `MVar`s will help to maintain these
+processes across threads.
 
-An `MVar` is a way to manage shared memory between threads. When an
-`MVar` is fulfilled, it contains a reference to any type of data that
-was put in there.
-
-## Using `MVar`s to manage state
-
-### Boot
-
-#### Creating `MVar`s
-We need to create empty `MVar`s to prepare for storing references to the
-build process and server process. We'll call those references
-`buildState` and `serverState`. Create new, empty `MVar`s with
-`newEmptyMVar`.
-
-{% highlight haskell %}
-serverState <- newEmptyMVar
-currentBuild <- newEmptyMVar
-{% endhighlight %}
-
-#### Storing a reference to the server process
-We should store a reference to the server process once we build and
-spawn it. Use `putMVar` to put stuff into `MVar`s. Where serverProcess
-is some `ProcessHandle` of an already running server:
-
-{% highlight haskell %}
-putMVar serverState serverProcess
-{% endhighlight %}
-
-### Build-and-Serve Sub-Program
-
-#### The Build State
-The first thing we do is determine whether there's a build currently
-running. We do that by inspecting `buildState`. `MVar`'s interface for
-inspecting whether something is contained within it is `tryTakeMVar`. It
-takes the item out the `MVar` if it's there and returns a `Maybe a`. In
-our case `a` is a `ProcessHandle`. If `tryTakeMVar` returns `Just a`, we
-terminate the process in the `ProcessHandle`. If it's `Nothing`, we
-don't do anything.
-
-{% highlight haskell %}
-maybeTerminateProcessFromMVar :: MVar ProcessHandle -> IO ()
-maybeTerminateProcessFromMVar buildProcess = do
-    process <- tryTakeMVar buildProcess
-
-    case process of
-        Just process -> terminateProcess process
-        Nothin -> return
-{% endhighlight %}
-
-The second thing we do is spawn a new build process. Immediately after
-we should put that process in our `buildState` with `putMVar`.
-
-{% highlight haskell %}
-putMVar currentBuild buildProcess
-{% endhighlight %}
-
-`currentBuild` will always be empty before this point. We've already
-removed any possible existing process contained within `currentBuild`
-with `tryTakeMVar`.
-
-#### The Server State
-We want to re-serve our server – that is, if and only if the build
-process wasn't killed. This means we should take the server process out
-of the `serverState` and terminate it. We already have a meachnism to
-take a `ProcessHandle` out of an `MVar` and maybe terminate it
-– `maybeTerminateProcessFromMVar`. So we can just use that; no need to
-duplicate the work.
-
-{% highlight haskell %}
-maybeTerminateProcessFromMVar serverState
-{% endhighlight %}
-
-Once the old server is terminated, we'll spawn a new serve process and
-use `putMVar` to put it into the `serverState`.
-
-{% highlight haskell %}
-putMVar serverState serverProcess
-{% endhighlight %}
-
-## Performing actions on `ProcessHandle`s contained in the `MVar`s
-Many useful functions create and operate on
-`System.Process.ProcessHandle`s. Here's a few of them that will help us
-out in our program.
+## Managing processes
 
 ### Spawning processes
-We need to spawn processes in order to create builds and servers.
-`spawnProcess` takes a string which is evaluated in a shell and returns
-an `IO ProcessHandle`. The `ProcessHandle` type class provides an
-interface to perform actions on processes.
+`System.Process.spawnProcess` takes a string – which is evaluated in a
+shell – and returns an `IO ProcessHandle`. It's how we'll spawn builds
+and servers.
 
 {% highlight haskell %}
-buildProcess <- spawnProcess buildCommand
-putMVar currentBuild buildProcess
+currentBuild <- spawnProcess buildCommand
 {% endhighlight %}
 
+In this example, `buildCommand` is some string passed into our program
+from the command line. `currentBuild` is a `ProcessHandle` that
+represents the current server process, and can be passed around to
+functions as need be.
+
 ### Terminating processes
-We need to terminate the server and buil process in the build-and-serve
-sub-program. `terminateProcess` (as already shown above) takes a
-`ProcessHandle` and sends a `SIGTERM` (or its Windows equivalent,
-TerminateProcess) signal to it.
+`System.Process.terminateProcess` takes a `ProcessHandle` and sends a
+`SIGTERM` signal to it in Unix. In Windows it sends a `TerminateProcess`
+signal. We'll use this to terminate the build and server processes in
+the callback to the file watcher.
 
 {% highlight haskell %}
 terminateProcess serverProcess
 {% endhighlight %}
 
 ### Waiting for processes
-In the build-and-serve sub-program, we need to know whether a build
-process has terminated or not. We can wait for the process to finish
-with `waitForProcess`. `waitForProcess` will return the exit code as a
-value constructor of the `ExitCode` data type. If the process exits
-successfully, it returns an `ExitSucess` and we can continue to
-restarting the server. If the process is terminated, it'll return an
-`ExitFailure` and we can end our sub-program.
+`System.Process.waitForProcess` takes a `ProcessHandle` and returns an
+`ExitCode` after waiting for the process to finish. In the callback to
+the file watcher, we need to know whether we've terminated the build
+process we initially spawned. If the process exits successfully, it
+returns an `ExitSuccess` and we'll know to restart the server. If the
+process is terminated, it'll return an `ExitFailure` and we'll know to
+do nothing.
+
+{% highlight haskell %}
+buildProcessExitCode <- waitForProcess buildProcess
+{% endhighlight %}
+
+We'll use `waitForProcess` in an interesting way below.
+
+## Managing processes across threads
+We'll use `MVar`s to manage processes across concurrent callbacks. An `MVar`
+is a wrapper for a value. The wrapper stores the value in a block of
+memory that is shared across threads. Many actions can be performed on
+`MVar`s, and they're generally used to synchronize and send data between
+threads.
+
+[`Control.Concurrent.MVar`](https://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-MVar.html)
+is only one way of managing shared memory in Haskell. We'll probably be
+using
+[`System.FSNotify`](https://hackage.haskell.org/package/fsnotify-0.1.0.3/docs/System-FSNotify.html)
+to listen to file events, which has a hard dependency on `MVar`. So
+there's no need to bring in another mechanism.
+
+### Creating empty `MVar`s
+`Control.Concurrent.MVar.newEmptyMVar` creates a new, empty `MVar`. We
+need to create empty `MVar`s to prepare for storing references to the
+build and server processes.
+
+{% highlight haskell %}
+currentServer <- newEmptyMVar
+currentBuild <- newEmptyMVar
+{% endhighlight %}
+
+### Putting a value into an `MVar`
+`Control.Concurrent.MVar.putMVar` takes an `MVar` and a value and puts
+the value in the `MVar`.  We'll use it to store a reference to the
+server process to terminate it later. We'll also use it to put build
+processes into `currentBuild`. Where `serverProcess` is some
+`ProcessHandle` of an already running server:
+
+{% highlight haskell %}
+putMVar currentServer serverProcess
+{% endhighlight %}
+
+Now `currentServer` is sharing the `serverProcess` across threads.
+
+### Taking a value out of an `MVar`
+`Control.Concurrent.MVar.tryTakeMVar` is one way of taking a value out
+of an `MVar`. It takes an `MVar` and returns `Maybe a`. `a` will always
+be a `ProcessHandle` in our case. If a `ProcessHandle` is wrapped in the
+`MVar` it returns `Just ProcessHandle`. If nothing is wrapped in the
+`MVar` it returns `Nothing`.
+
+We'll use `tryTakeMVar` to see whether there's a build current running.
+If a build process is in `currentBuild`, we'll end it with
+`terminateProcess`. Otherwise, we won't do anything.
+
+We can create a reusable abstraction for that called
+`maybeTerminateProcessFromMVar`.
+
+{% highlight haskell %}
+maybeTerminateProcessFromMVar currentBuild
+
+maybeTerminateProcessFromMVar :: MVar ProcessHandle -> IO ()
+maybeTerminateProcessFromMVar currentBuild = do
+    process <- tryTakeMVar currentBuild
+
+    case process of
+        Just process -> terminateProcess process
+        Nothing -> return
+{% endhighlight %}
+
+## Putting it all together
+
+The callback to the file watcher is the meat and potatoes of our
+abstract development server. So we'll concern ourselves with that only.
+
+We'll call it `buildAndServe`.
+
+{% highlight haskell %}
+buildAndServe :: CommandLine
+                -> MVar ProcessHandle
+                -> MVar ProcessHandle
+                -> IO ()
+buildAndServe commandLine currentBuild currentServer = do
+    maybeTerminateProcessFromMVar currentBuild
+
+    startBuild (buildCommand commandLine) currentBuild
+        >>= waitForProcess
+        >>= restartServer commandLine serverProcess
+{% endhighlight %}
+
+`buildAndServe` takes a `CommandLine` and `MVar`s that may contain our
+build and server processes. The `CommandLine` contains options passed
+from the user.
+
+{% highlight haskell %}
+data CommandLine = CommandLine
+    { serverCommand :: String
+    , buildCommand :: String }
+{% endhighlight %}
+
+First, we terminate the currently running build with
+`maybeTerminateProcessFromMVar`. Here it is again:
+
+{% highlight haskell %}
+maybeTerminateProcessFromMVar :: MVar ProcessHandle -> IO ()
+maybeTerminateProcessFromMVar currentBuild = do
+    process <- tryTakeMVar currentBuild
+
+    case process of
+        Just process -> terminateProcess process
+        Nothing -> return
+{% endhighlight %}
+
+Then we start a new build with `startBuild`.
+
+{% highlight haskell %}
+startBuild :: String -> MVar ProcessHandle -> IO ProcessHandle
+startBuild buildCommand currentBuild = do
+    build <- spawnCommand buildCommand
+    putMVar currentBuild build
+    return build
+{% endhighlight %}
+
+`startBuild` takes the build command and the `currentBuild` `MVar`. It
+spawns the build process, puts it into the `currentBuild` `MVar`, and
+returns the build `ProcessHandle` wrapped in `IO`.
+
+Returning `IO ProcessHandle` gives us the concision of calling
+`waitForProcess` in a [pointfree](https://wiki.haskell.org/Pointfree)
+manner.
+
+{% highlight haskell %}
+startBuild (buildCommand commandLine) currentBuild
+    >>= waitForProcess
+{% endhighlight %}
+
+That is equivalent to calling `waitForProcess build`, where `build` is
+the `ProcessHandle` from `spawnCommand buildCommand` in `startBuild`.
+The second argument to bind (`>>=`) must be a function. That function is
+applied to the value wrapped in the monadic constructor returned from
+the first argument of `>>=`. Our value wrapped in that monadic
+constructor – `IO` in this case – is the `build`. So `waitForProcess` is
+applied to `build`.
+
+We reap the benefits of the pointfree style again when `restartServer` is
+applied to the exit code that `waitForProcess` returns.
+
+{% highlight haskell %}
+startBuild (buildCommand commandLine) currentBuild
+    >>= waitForProcess
+    >>= restartServer commandLine serverProcess
+{% endhighlight %}
+
+To reiterate: `waitForProcess` is applied to the `build` returned and
+wrapped in `IO` from `startBuild`. Then `restartServer` is applied to
+`commandLine`, `serverProcess`, and the `ExitCode` returned and wrapped
+in `IO` from `waitForProcess`.
+
+`restartServer` is as follows:
+
+{% highlight haskell %}
+restartServer :: CommandLine -> MVar ProcessHandle -> ExitCode -> IO ()
+restartServer commandLine currentServer ExitSuccess = do
+    maybeTerminateProcessFromMVar currentServer
+    spawnCommand (serverCommand commandLine) >>= putMVar serverProcess
+restartServer _ _ _ = return ()
+{% endhighlight %}
+
+Here, the pointfree style lends itself to easy pattern-matching on the
+`ExitCode` value constructors. Remember: we don't want to restart the
+server if the build process was terminated in some other thread. So we
+won't do anything if the `ExitCode` is not `ExitSuccess`:
+
+{% highlight haskell %}
+restartServer _ _ _ = return ()
+{% endhighlight %}
 
 ## Waiter
-By the way, this exists as a command line tool called `waiter`. [Check
-it out on Github](https://github.com/davejachimiak/waiter).
+This program exists as a command line tool called `waiter`. [Check it
+out on Github](https://github.com/davejachimiak/waiter). The end result
+differs from the description here, but contains the main idea.
 
 To install:
 
