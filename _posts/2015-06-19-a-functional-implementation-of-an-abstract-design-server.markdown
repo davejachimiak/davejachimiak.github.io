@@ -1,8 +1,8 @@
 ---
 layout: post-no-feature
 title:  "A Functional Implementation of an Abstract Development Server"
-date:   2015-05-19
-description:  Let's implement an abstract development server in Haskell.
+date:   2015-06-19
+description: Let's implement an abstract development server in Haskell.
 categories: development software-design servers
 ---
 Implementing an abstract development server in a purely functional
