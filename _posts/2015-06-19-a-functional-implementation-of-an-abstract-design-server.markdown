@@ -5,10 +5,6 @@ date:   2015-06-19
 description: Let's implement an abstract development server in Haskell.
 categories: development software-design servers
 ---
-Implementing an abstract development server in a purely functional
-language is fun and interesting. The most interesting part is answering:
-what exactly should happen when a file event is fired?
-
 [A previous post](/2015/05/designing-an-abstract-development-server.html)
 determined a loose design for an abstract development server:
 
