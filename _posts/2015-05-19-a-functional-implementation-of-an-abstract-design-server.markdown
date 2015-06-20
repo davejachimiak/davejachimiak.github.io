@@ -7,7 +7,7 @@ categories: development software-design servers
 ---
 Implementing an abstract development server in a purely functional
 language is fun and interesting. The most interesting part is answering:
-what exactly happens when a file event is fired?
+what exactly should happen when a file event is fired?
 
 [A previous post](/2015/05/designing-an-abstract-development-server.html)
 determined a loose design for an abstract development server:
@@ -29,16 +29,17 @@ When a file event happens, the file watcher should run a callback that:
 
 Why do we terminate the current build process if a file event happens?
 
-Answer: concurrent callbacks are possible.
+Because concurrent callbacks are possible.
 
-Compiling an executable takes time.  If a compilation takes five seconds
-and a file event occurs in the third, we want to cancel that compilation
-and start a new one. We don't care about old code when developing our
-server.
+Compiling takes time. If a compilation takes five seconds and a file
+event occurs in the third, that means we now have two callbacks running
+at the same time. This also means that we want to cancel first
+compilation and start a new one; we don't care about old code when
+developing our server.
 
-The above callback is unneccesarily complex. It listens to file events
-even though it was triggered by a file event itself. A simpler version
-doesn't need to know about file events:
+The specification for the above callback is unneccesarily complex. It
+listens to file events even though it was triggered by a file event
+itself. A simpler version doesn't need to know about file events:
 
 * * *
 
@@ -49,7 +50,7 @@ doesn't need to know about file events:
 
 * * *
 
-This callback requires maintaining the current build and server
+This version requires maintaining the current build and server
 processes across concurrent callbacks; the file watcher will run the
 callback in a new thread for each file event.
 
@@ -126,14 +127,15 @@ currentBuild <- newEmptyMVar
 `Control.Concurrent.MVar.putMVar` takes an `MVar` and a value and puts
 the value in the `MVar`.  We'll use it to store a reference to the
 server process to terminate it later. We'll also use it to put build
-processes into `currentBuild`. Where `serverProcess` is some
-`ProcessHandle` of an already running server:
+processes into `currentBuild`.
 
 {% highlight haskell %}
 putMVar currentServer serverProcess
 {% endhighlight %}
 
-Now `currentServer` is sharing the `serverProcess` across threads.
+If `serverProcess` is some `ProcessHandle` of an already running server,
+`currentServer` in the above code now shares the `serverProcess` across
+threads.
 
 ### Taking a value out of an `MVar`
 `Control.Concurrent.MVar.tryTakeMVar` is one way of taking a value out
@@ -146,7 +148,7 @@ We'll use `tryTakeMVar` to see whether there's a build current running.
 If a build process is in `currentBuild`, we'll end it with
 `terminateProcess`. Otherwise, we won't do anything.
 
-We can create a reusable abstraction for that called
+We can create a reusable function for that called
 `maybeTerminateProcessFromMVar`.
 
 {% highlight haskell %}
@@ -181,9 +183,9 @@ buildAndServe commandLine currentBuild currentServer = do
         >>= restartServer commandLine serverProcess
 {% endhighlight %}
 
-`buildAndServe` takes a `CommandLine` and `MVar`s that may contain our
-build and server processes. The `CommandLine` contains options passed
-from the user.
+`buildAndServe` takes a `CommandLine` and the `MVar`s that may contain
+our build and server processes. The `CommandLine` contains options
+passed from the user.
 
 {% highlight haskell %}
 data CommandLine = CommandLine
