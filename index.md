@@ -1,6 +1,6 @@
 ---
 layout: home
-title: "Recent Posts"
+title: "Posts"
 tags: [Dave Jachimiak, programming, functional, development, web]
 image:
   feature: typewriter.jpg
