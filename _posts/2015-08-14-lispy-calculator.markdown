@@ -61,11 +61,11 @@ notation, where precedence makes parser generators and the automata they
 create more complex.
 
 The parser gets lookahead tokens by invoking a lexer contained in the
-`yylex` function. Lexers can built with
-[lex](http://dinosaur.compilertools.net/lex/), which exports the `yylex`
-function for yacc-like generators. `yylex` can also be designed by hand.
-Our calculator can use the [Bison manual's lexer for its reverse polish
-notation
+`yylex` function. Lexers can be built with
+[lex](http://dinosaur.compilertools.net/lex/) or other tools that export
+the `yylex` function for yacc-like generators. `yylex` can also be
+designed by hand. Our calculator can use the [Bison manual's lexer for
+its reverse polish notation
 calculator](https://www.gnu.org/software/bison/manual/html_node/Rpcalc-Lexer.html#Rpcalc-Lexer).
 
 {% highlight c %}
