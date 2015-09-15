@@ -32,7 +32,8 @@ user clicks another element.
 </html>
 {% endhighlight %}
 
-To speed-test how clicking `#append-child` many times manipulates the DOM, don't do this:
+You want to see how fast the DOM is when a user clicks
+`#append-child` many times. Don't do this:
 
 {% highlight javascript %}
 var startTime = new Date();
@@ -128,24 +129,35 @@ appendChildren(1);
 <div id="append-child-good" style="left:-10000px;position:absolute;"></div>
 
 Consider the first example. Most modern browsers append 100 “hi”s at the
-same time. The time printed in the console would be way too short. This
-is because those browsers gather DOM writes in synchronous code. They
-execute a layout after it’s completely evaluated. Some reads of node
-properties, like `element.clientHeight`, will trigger layouts in
-synchronous code. More below.
+same time. They gather DOM writes in synchrnous code, even if triggered
+by DOM events. Those browsers execute a layout after the code is
+completely evaluated.
 
 The second example executes a layout every time our simulated user
 clicks the `#add-element` element. It gives us a time we can compare to a
 speed test of another implementation of the same functionality.
 
-This isn’t to say that an event should execute only one layout should
-for each user interaction. Some bad DOM performance occurs when a single
-user action triggers many layouts. You’ll want to account for all those
-layouts in your measurement. You’ll see many layouts executed for
-certain reads of nodes. For example, calling `clientHeight` on some
-element between 2 DOM writes will trigger two layouts. The first is for
-the browser to figure out the client height of the element after the
-first write. The second is to display the result of the second write.
+Some bad DOM performance occurs when a single user action triggers many
+layouts. So you’ll want to account for all those layouts in your
+measurement. Many layouts are executed if you call certain properties on
+elements between statements that write to the DOM. For example, calling
+`clientHeight` on an element between 2 DOM writes will trigger two
+layouts.
+
+{% highlight javascript %}
+var root = document.getElementById('root');
+var child = document.createElement('div');
+
+root.appendChild(child);
+
+var childHeight = child.clientHeight;
+
+child.style.height = (childHeight * 2) + 'px';
+{% endhighlight %}
+
+To determine the client height, the browser triggers a layout when
+`child.clientHeight` is evaluated. Then the browser triggers another
+layout when the code is done executing.
 
 ### Further reading
 
