@@ -1,6 +1,6 @@
 ---
 layout: post-no-feature
-title: "A Tip for Testing the Speed of User Interactions Your Javascript App"
+title: "A Tip for Testing the Speed of User Interactions in Your Javascript App"
 date: 2015-09-14
 categories: javascript DOM performance
 ---
