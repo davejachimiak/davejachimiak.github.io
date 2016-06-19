@@ -10,7 +10,7 @@ permalink: /about/index.html
 <h3 class="greeting">I solve problems with software.</h3>
 
 I made [A Better Queue](http://abetterqueue.com/), a mashup of Netflix and
-Rotten Tomatoes. Imake software at [Wistia](https://wistia.com). I made
+Rotten Tomatoes. I make software at [Wistia](https://wistia.com). I made
 software at [MUBI](https://mubi.com) and [Iora Health](http://www.iorahealth.com/).
 
 I'm a musician. I have a master's degree in Studio Music and Jazz Performance
