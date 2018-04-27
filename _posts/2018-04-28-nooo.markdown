@@ -1,0 +1,175 @@
+---
+layout: post-no-feature
+title: "--noooooooooooooooooo"
+date: 2018-04-28
+categories: Ruby
+---
+
+Thee behavior of Ruby's `OptionParser` may suprise you when saying "no" in flags
+and switches. It's best to avoid negative names, anyways.
+
+<hr>
+
+Say you want to make pizza CLI and you want to build it in Ruby. Ruby comes with
+an `OptionParser` and so you think "hey, this might be handy to parse options
+with."
+
+```ruby
+# pizza.rb
+require 'optparse'
+
+class Options
+  attr_accessor :sauce
+
+  def initialize
+    @sauce = 'marinara'
+  end
+end
+
+options = Options.new
+
+OptionParser.new do |parser|
+  parser.on '--sauce=SAUCE' do |sauce|
+    options.sauce = sauce
+  end
+end.parse!
+
+puts "sauce: #{options.sauce}"
+```
+
+And then:
+
+```sh
+$ ruby pizza.rb --sauce=pesto
+sauce: pesto
+$ ruby pizza.rb
+sauce: marinara
+```
+
+`OptionParser` calls the block passed to `on` only if the flag is in the `ARGV`.
+It calls the block with the value the user passes to the flag.
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--use-marinara' do |use_marinara|
+    puts "Use marinara sauce? so #{use_marinara}"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --use-marinara
+Use marinara sauce? so true
+$ ruby pizza.rb
+$ 
+```
+
+Declaring a long flag without indicating it takes a value makes it a boolean
+switch, and the boolean is passed to the block.
+
+<hr>
+
+What happens when we use the word "no" in our flags?
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--no-onions' do |no_onions|
+    puts "NO ONIONS???: EXTREMELY #{no_onions.to_s.upcase}--<<<"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --no-onions
+NO ONIONS???: EXTREMELY FALSE--<<<
+```
+
+`OptionParser` negates the boolean! Didn't expect that.
+
+OK, what if I just hack it by declaring it as a flag with a value?
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--no-sauce=NO_SAUCE' do |no_sauce|
+    puts "--no-sauce=#{no_sauce}"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --no-sauce=1
+/poop.rb:25:in `<main>': needless argument: --no-sauce=1 (OptionParser::NeedlessArgument)
+```
+
+Hm. Maybe `OptionParser` still thinks that it's a switch.
+
+```sh
+$ ruby pizza.rb --no-sauce
+--no-sauce=false
+```
+
+Yep.
+
+Let's take a look at the [`OptionParser` docs](http://ruby-doc.org/stdlib-2.5.0/libdoc/optparse/rdoc/OptionParser.html).
+It shows a [minimal example](http://ruby-doc.org/stdlib-2.5.0/libdoc/optparse/rdoc/OptionParser.html#class-OptionParser-label-Minimal+example):
+
+```ruby
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+end.parse!
+```
+
+Aha! `--[no-]verbose`, declaring `[no-]` as an optional part of the flag.
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--[no-]onions' do |onions|
+    puts "onions? #{onions}"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --onions
+onions? true
+$ ruby pizza.rb --no-onions
+onions? false
+```
+
+OK, the boolean negation makes sense here. `OptionParser` eases the burden of
+writing two switches if you optionally want a negative version of some positive
+option. For example, it helps us avoid writing something like:
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--onions' do |onions|
+    puts "onions? #{onions}"
+  end
+
+  parser.on '--no-onions' do |onions|
+    puts "onions? #{onions}"
+  end
+end.parse!
+```
+
+Why does declaring `--no-onions` behave like `--[no-]onions`? I don't know for
+sure, but I imagine that the `optparse` authors wanted to keep behavior
+consistent between optional and non-optional `no-`s. That aside, the behavior
+from declaring `--no-<something>` could be confusing and if you're not aware of
+the behavior from declaring `--[no-]<something>`.
+
+## Negative names
+
+Avoiding negative names is usually a good strategy. It makes code and
+configuration more readable. I'd rather read `!onions` than `no_onions`.  I'd
+rather configure `--onions` instead of `--no-onions` and see well documented
+defaults. Also, negating negative booleans get annoying — e.g. `!no_onions` or
+even worse: `unless no_onions`.
+
+A little bit of negative naming is fine. But generous use is not.  Consistently
+using positive names makes code easier to read. The reader can spend less energy
+flipping booleans around and spend more energy elsewhere.
