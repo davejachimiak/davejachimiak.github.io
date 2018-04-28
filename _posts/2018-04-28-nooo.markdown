@@ -1,0 +1,164 @@
+---
+layout: post-no-feature
+title: "--noooooooooooooooooo"
+date: 2018-04-28
+categories: Ruby
+---
+
+Ruby's `OptionParser` surprised me the other day. 
+
+<hr>
+
+Say you want to make a CLI in Ruby. Ruby comes with an `OptionParser` and so you
+think "hey, this might be handy for parsing CLI arguments."
+
+```ruby
+# pizza.rb
+require 'optparse'
+
+class Options
+  attr_accessor :sauce
+
+  def initialize
+    @sauce = 'marinara'
+  end
+end
+
+options = Options.new
+
+OptionParser.new do |parser|
+  parser.on '--sauce=SAUCE' do |sauce|
+    options.sauce = sauce
+  end
+end.parse!
+
+puts "sauce: #{options.sauce}"
+```
+
+Let's test it out.
+
+```sh
+$ ruby pizza.rb --sauce=pesto
+sauce: pesto
+$ ruby pizza.rb
+sauce: marinara
+```
+
+`OptionParser` only calls the block passed to `on` if the flag is in the `ARGV`.
+It calls the block with the value the user passes to the flag.
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--use-marinara' do |use_marinara|
+    puts "Use marinara sauce? so #{use_marinara}"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --use-marinara
+Use marinara sauce? so true
+$ ruby pizza.rb
+$ 
+```
+
+`OptionParser` makes a boolean switch out of long arguments with no declared
+value. It calls the `on` block with the boolean if the switch is in the `ARGV`.
+
+<hr>
+
+I don't think adding the word "no" to flags is a good idea. But what happens
+when we do?
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--no-onions' do |no_onions|
+    puts "NO ONIONS???: EXTREMELY #{no_onions.to_s.upcase}--<<<"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --no-onions
+NO ONIONS???: EXTREMELY FALSE--<<<
+```
+
+`OptionParser` negates the boolean! Didn't expect that.
+
+OK, what if I just hack it by declaring it as a flag with a value?
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--no-sauce=NO_SAUCE' do |no_sauce|
+    puts "--no-sauce=#{no_sauce}"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --no-sauce=1
+/poop.rb:25:in `<main>': needless argument: --no-sauce=1 (OptionParser::NeedlessArgument)
+```
+
+Hm. Maybe `OptionParser` still thinks that it's a switch.
+
+```sh
+$ ruby pizza.rb --no-sauce
+--no-sauce=false
+```
+
+Yep.
+
+Let's take a look at the [`OptionParser` docs](http://ruby-doc.org/stdlib-2.5.0/libdoc/optparse/rdoc/OptionParser.html).
+It shows a [minimal example](http://ruby-doc.org/stdlib-2.5.0/libdoc/optparse/rdoc/OptionParser.html#class-OptionParser-label-Minimal+example):
+
+```ruby
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+end.parse!
+```
+
+Aha! `--[no-]verbose`. Declaring an optional `[no-]` allows both postive and
+negative versions of the switch.
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--[no-]onions' do |onions|
+    puts "onions? #{onions}"
+  end
+end.parse!
+```
+
+```sh
+$ ruby pizza.rb --onions
+onions? true
+$ ruby pizza.rb --no-onions
+onions? false
+```
+
+OK, the boolean negation makes sense here. `OptionParser` eases the burden of
+writing two switches if you optionally want a negative version of some positive
+option. For example, it helps us avoid writing something like:
+
+```ruby
+OptionParser.new do |parser|
+  parser.on '--onions' do |onions|
+    puts "onions? #{onions}"
+  end
+
+  parser.on '--no-onions' do |onions|
+    puts "onions? #{onions}"
+  end
+end.parse!
+```
+
+Why does declaring the non-optional `--no-onions` behave like the optional
+`--[no-]onions`? I don't know, but I imagine that the `optparse` authors wanted
+to keep behavior consistent between optional and non-optional `no-`s.
+
+([This has been the behavior in `OptionParser` since at least
+2002](https://github.com/ruby/ruby/blob/6af4aebc954f548298559e49719aec84e8653adc/lib/optparse.rb#L951-L970).)
