@@ -30,10 +30,14 @@ a:hover {
     @include transit(all,.25s, ease-in-out)
 }
 
+//em {
+    //padding: 1px 2px;
+    //border-radius: 2px;
+    //background: #ffe8c0;
+//}
+
 em {
-    padding: 1px 2px;
-    border-radius: 2px;
-    background: #ffe8c0;
+  font-style: italic;
 }
 
 strong {
@@ -67,6 +71,7 @@ code {
     font-family: "Monaco", "Courier New", "Courier";
     font-size: .75em;
     font-weight: bold;
+    white-space: pre-wrap;
 }
 
 hr {
