@@ -167,9 +167,9 @@ library. Such a function should go there. But since we're just focusing on
 `Math` library without implementing all of it, we'll just put `modSixteen` in
 `Screen`.
 
-Finally, we need to somehow modify the address so that we only change pixel
-(x,y). We'll setup a modifier that we can apply to the address. The modifier
-will be a number that has a pixel-corresponding bit of 1 while the rest are 0.
+Finally, we'll get need to somehow modify the address so that we only change pixel
+(x,y). We'll get a modifier that we can use on to the address. The modifier will
+be a number that has a pixel-corresponding bit of 1 while the rest are 0.
 
 ```
 function void drawPixel(int x, int y) {
@@ -217,7 +217,7 @@ the screen will display it as `□□■□□■■□□□□□□□□□`
 The challenge is to modify the address to change the pixel (x,y) but not disturb
 the other pixels in the address. We can do this with some bit arithmetic.
 
-How we'll use that modifier depends on the current color. 
+How we'll do with the modifier and the address depends on the current color. 
 
 ```
 function void drawPixel(int x, int y) {
@@ -285,11 +285,6 @@ AND 1111111111111110 <-- negated modifier
     1111111100000010 <-- new address value
 ```
 
-Applying the negated modifer — `111111111111110` with `AND` results in
+Applying the negated modifer — `111111111111110` — with `AND` results in
 `1111111100000000`. Now the 1st pixel in the address has been painted white
 while leaving the other bits the same.
-
-<hr>
-
-Other function in `Screen` — `drawLine()` and `drawCircle()` — use `drawPixel()`
-to draw pixels while determining which pixels to draw.
