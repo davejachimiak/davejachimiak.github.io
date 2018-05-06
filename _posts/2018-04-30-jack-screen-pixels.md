@@ -1,7 +1,7 @@
 ---
 layout: post-no-feature
 title: "The Elements of Computing Systems: Drawing Pixels on the Screen"
-date: 2018-04-30
+date: 2018-05-06
 categories: languages, graphics, Jack
 ---
 
