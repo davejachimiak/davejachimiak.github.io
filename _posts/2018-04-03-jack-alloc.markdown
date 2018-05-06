@@ -13,7 +13,7 @@ I love this book.
 
 The Elements of Computing Systems has you build a computer from scratch. By the
 end you build a platform called Jack, which includes some virtual hardware, an
-assembler, a virtual machine, a compiler for the Jack language. Fun!
+assembler, a virtual machine, and a compiler for the Jack language. Fun!
 
 It also has an operating system. It isn't what you would consider a full-blown
 operating system. It's rather a collection of libraries with system calls that
@@ -34,7 +34,7 @@ This recycles memory so we can reallocate it later.
 To make `freeList` work across `alloc` and `deAlloc`, we need a place to store a
 segment's length and a pointer to the next segment. So we'll store the segment's
 length in its first address and a pointer to the next segment in its second
-address. We know we're at the end of the list if there's no pointer to in a
+address. We know we're at the end of the list if there's no pointer in a
 segment's second address.
 
 The language you'll see below is Jack. It feels like Java, but it's a lot
