@@ -122,7 +122,7 @@ OptionParser.new do |opts|
 end.parse!
 ```
 
-Aha! `--[no-]verbose`. Declaring an optional `[no-]` allows both postive and
+Aha! `--[no-]verbose`. Declaring an optional `[no-]` allows both positive and
 negative versions of the switch.
 
 ```ruby
@@ -141,7 +141,7 @@ onions? false
 ```
 
 OK, the boolean negation makes sense here. `OptionParser` eases the burden of
-writing two switches if you optionally want a negative version of some positive
+writing two switches if you want to have a negative version of some positive
 option. For example, it helps us avoid writing something like:
 
 ```ruby
