@@ -130,7 +130,7 @@ Now it knows itself as the *leader*.
 If the `@id` is higher than the `new_candidate_predecessor`, this means that the
 message made itself "around" the ring; it crossed the imaginary border between
 the lowest and highest ID'd nodes. This also means that `@id` is a candidate
-successor to `new_candidate_predecessor`; `new_candidate_predecessor` is lower
+successor to `new_candidate_predecessor`; `new_candidate_predecessor` is a lower
 ranked *candidate* than `@id`. Knowing this, we set the node's status to
 `WAITING` — a way of letting other received messages know that the node already
 received `message1` — and send `message2(@id)` to `new_candidate_predecessor`.
@@ -155,9 +155,9 @@ def message2(new_candidate_successor)
 end
 ```
 
-Only *waiting* candidate nodes and whose IDs are higher send `message2` to nodes
-ID'd *candidates*. In other words, if a message receives `message2`, it knows it
-can't be the leader. And since `message2` is the only place where
+Only *waiting* candidate nodes whose IDs are higher send `message2` to nodes
+whose IDs are lower. In other words, if a message receives `message2`, it knows
+it can't be the leader. And since `message2` is the only place where
 `@candidate_successor`s are set, then `message1` and `message3` know that if the
 node has a `@candidate_successor`, then they can safely mark the node as a
 *dummy* before sending off a `message3` to the `@candidate_successor`.
