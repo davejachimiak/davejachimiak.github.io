@@ -1,0 +1,46 @@
+---
+layout: post-no-feature
+title: "Interrupted Time"
+date: 2018-06-10
+categories: engineering
+---
+
+> "Software engineers need long stretches of uninterrupted time to get any
+meaningful work done."
+
+I see tweets like this a lot. They sound nice. 4 or 5 hours of uninterrupted
+time without emails, notifications, or pages is great. But the last few hours
+are going to be wasted if you don't take breaks.
+
+Working for very long stretches of time, deep in your head, isn't all that it's
+cracked up to be. I frequently make mistakes when working for, say, 4 hours
+straight without many bathroom breaks. Worst of all, these mistakes aren't
+apparent until the next day after I've gotten some rest. I can only imagine that
+folks whose work demands creativity and problem solving end up in similar
+situations.
+
+My hypothesis is that my mental zoom lens becomes faulty without rest. Deep
+focus over a long period of time — say, more than 2 hours — decreases the lens'
+ability to zoom out. At this point it becomes easy to stay at whatever level of
+abstraction I'm operating on or go down rabbit holes. And when this happens it's
+impossible to see how any decisions I'm making at lower levels may not be
+compatible with existing structures at higher levels.
+
+At some point I asked myself "is it possible to train the mind so that zooming
+out remains easy after focussing for a long time?" This might be incredibly
+useful, but I'm doubtful that that the work would be worth the results if it's
+even possible. The mind automatically zooms out and consolidates information you
+learned from previous work sessions just as a result of softening focus and
+resting for a short while. Why forego this natural mechanism?
+
+The exception to all this is if you have everything figured out, you know how
+everything you're making is going to fit together with existing stuff, and
+everything actually connects perfectly like how you thought it would. Unless
+you're deeply familiar with existing code and architecture, and have an ounce of
+luck, it's unlikely that all your assumptions will be true.
+
+The timeframes used by the subjects of the [Ericsson
+paper](http://projects.ict.usc.edu/itw/gel/EricssonDeliberatePracticePR93.pdf) —
+about 60-90 minutes of focused activity with some short or long breaks in
+between — work best for me. A few sessions of those and I have a solid day with
+fewer rabit holes and bugs.
