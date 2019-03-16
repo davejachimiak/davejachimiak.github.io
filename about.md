@@ -3,7 +3,7 @@ layout: post-no-share
 permalink: /about/index.html
 ---
 
-<img class="dave" src="/images/dave.jpg" />
+<img class="dave" src="/images/dave-1.jpg" />
 
 <h2 class="greeting">Hi. I'm Dave.</h2>
 
