@@ -2,6 +2,8 @@ title: Dave Jachimiak
 description: Blog
 canonical: https://davej.io
 
+baseurl: /
+
 # Owner/author information
 owner:
   name: Dave Jachimiak
